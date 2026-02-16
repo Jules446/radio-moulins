@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#050408"/>
+<title>RADIO MOULIN — Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════════════
+   RESET + VARIABLES
+══════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#050408;
+  --card:#0f0c1a;
+  --border:rgba(210,160,60,.15);
+  --gold:#c9a84c;
+  --gold2:#eacf7d;
+  --ember:#ff5520;
+  --amber:#e08820;
+  --cream:#f2eadb;
+  --muted:#5e566e;
+  --live:#ff3535;
+
+  /* responsive sizes */
+  --art-h:220px;
+  --vinyl-sz:140px;
+  --title-sz:clamp(42px,10vw,68px);
+  --body-pad:clamp(16px,5vw,30px);
+  --card-w:min(500px,98vw);
+}
+
+/* mobile */
+@media(max-width:480px){
+  :root{--art-h:180px;--vinyl-sz:110px;--body-pad:16px}
+}
+/* tablet landscape */
+@media(min-width:768px) and (max-height:600px){
+  :root{--art-h:160px;--vinyl-sz:110px;--body-pad:20px}
+}
+
+html{height:100%;overflow-y:auto}
+body{
+  min-height:100%;background:var(--bg);
+  font-family:'DM Mono',monospace;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(8px,3vh,32px) 0;
+  cursor:none;
+}
+@media(pointer:coarse){body{cursor:auto}}
+
+/* ══════════════════════════════════════════════════
+   CURSOR (desktop only)
+══════════════════════════════════════════════════ */
+#CUR,#CRING{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+#CUR{width:8px;height:8px;background:var(--gold);mix-blend-mode:screen;transition:width .18s,height .18s}
+#CRING{width:30px;height:30px;border:1px solid rgba(201,168,76,.5);z-index:9998;transition:width .28s,height .28s,border-color .28s}
+@media(pointer:coarse){#CUR,#CRING{display:none}}
+
+/* ══════════════════════════════════════════════════
+   BACKGROUND
+══════════════════════════════════════════════════ */
+#cvs{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+.orbs{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);animation:float var(--t,20s) ease-in-out infinite alternate}
+.o1{width:600px;height:600px;top:-180px;left:-180px;background:radial-gradient(circle,rgba(201,168,76,.08),transparent 70%);--t:22s}
+.o2{width:500px;height:500px;bottom:-120px;right:-120px;background:radial-gradient(circle,rgba(255,85,32,.06),transparent 70%);--t:27s;animation-direction:alternate-reverse}
+.o3{width:380px;height:380px;top:35%;left:50%;background:radial-gradient(circle,rgba(80,40,160,.06),transparent 70%);--t:18s}
+@keyframes float{to{transform:translate(30px,22px) scale(1.1)}}
+
+.grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.038;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px}
+.scan{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px)}
+
+/* ══════════════════════════════════════════════════
+   CARD
+══════════════════════════════════════════════════ */
+.card{
+  position:relative;z-index:10;
+  width:var(--card-w);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(201,168,76,.04),0 40px 90px rgba(0,0,0,.85),inset 0 1px 0 rgba(201,168,76,.07);
+  animation:rise .85s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+
+/* shimmer top border */
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;z-index:6;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.8) 30%,var(--gold2) 50%,rgba(201,168,76,.8) 70%,transparent);
+  animation:shimTop 5s ease-in-out infinite;
+}
+@keyframes shimTop{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* ══════════════════════════════════════════════════
+   ART ZONE
+══════════════════════════════════════════════════ */
+.art-zone{position:relative;height:var(--art-h);overflow:hidden;flex-shrink:0}
+.art-blur{
+  position:absolute;inset:-14px;z-index:0;
+  background:url('https://www.radioking.com/api/track/cover/0b45d33f-a8ed-415d-a5ff-73ae6d887d5c') center/cover no-repeat;
+  filter:blur(22px) brightness(.18) saturate(1.7);transform:scale(1.1);
+  transition:background-image .7s ease;
+}
+.art-vignette{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(5,4,8,.1) 0%,transparent 40%,rgba(15,12,26,1) 100%)}
+.art-center{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center}
+
+/* vinyl */
+.vinyl-wrap{position:relative;width:var(--vinyl-sz);height:var(--vinyl-sz);display:flex;align-items:center;justify-content:center}
+
+.pulse-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.pr{position:absolute;width:100%;height:100%;border-radius:50%;border:1px solid rgba(201,168,76,.32);animation:pOut 2.5s ease-out infinite;opacity:0}
+.pr:nth-child(1){animation-delay:0s}
+.pr:nth-child(2){animation-delay:.83s}
+.pr:nth-child(3){animation-delay:1.66s}
+.pulse-rings.off .pr{animation-play-state:paused}
+@keyframes pOut{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.0);opacity:0}}
+
+.orbit-r{position:absolute;border-radius:50%;border:1px solid rgba(201,168,76,.15);top:50%;left:50%;transform:translate(-50%,-50%)}
+.orbit-r.or1{width:calc(var(--vinyl-sz) + 36px);height:calc(var(--vinyl-sz) + 36px);animation:oSpin 16s linear infinite}
+.orbit-r.or1::after{content:'';position:absolute;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold),0 0 16px var(--gold);top:-3.5px;left:50%;transform:translateX(-50%)}
+.orbit-r.or2{width:calc(var(--vinyl-sz) + 56px);height:calc(var(--vinyl-sz) + 56px);border-style:dashed;border-color:rgba(201,168,76,.06);animation:oSpin 28s linear infinite reverse}
+@keyframes oSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+.vinyl{
+  width:var(--vinyl-sz);height:var(--vinyl-sz);border-radius:50%;
+  background:conic-gradient(#1c1728 0deg,#0e0b18 45deg,#1c1728 90deg,#0e0b18 135deg,#1c1728 180deg,#0e0b18 225deg,#1c1728 270deg,#0e0b18 315deg,#1c1728 360deg);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 1px rgba(201,168,76,.12),0 0 30px rgba(0,0,0,.7);
+  animation:vSpin 4s linear infinite;position:relative;
+}
+.vinyl::before{content:'';position:absolute;inset:12px;border-radius:50%;border:1px solid rgba(201,168,76,.07)}
+.vinyl::after{content:'';position:absolute;inset:24px;border-radius:50%;border:1px solid rgba(201,168,76,.04)}
+.vinyl.paused{animation-play-state:paused}
+@keyframes vSpin{to{transform:rotate(360deg)}}
+
+.vinyl-label{position:absolute;width:44%;height:44%;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2px rgba(201,168,76,.25);z-index:2}
+.vinyl-label img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ══════════════════════════════════════════════════
+   BODY
+══════════════════════════════════════════════════ */
+.body{padding:var(--body-pad)}
+
+/* top row */
+.top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(14px,3vw,22px);animation:up .5s .08s both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.live-pill{display:flex;align-items:center;gap:6px;background:rgba(255,53,53,.07);border:1px solid rgba(255,53,53,.2);border-radius:20px;padding:5px 11px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);animation:ldot 1.4s ease-in-out infinite}
+@keyframes ldot{0%,100%{opacity:1;box-shadow:0 0 8px var(--live)}50%{opacity:.3;box-shadow:none}}
+.live-txt{font-size:clamp(7px,2vw,8.5px);letter-spacing:.28em;color:var(--live);text-transform:uppercase}
+
+.clk{font-size:clamp(9px,2.5vw,11px);letter-spacing:.1em;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* title */
+.title-zone{margin-bottom:clamp(12px,3vw,18px);animation:up .5s .13s both}
+.pre-lbl{font-size:clamp(7px,1.8vw,8.5px);letter-spacing:.38em;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.main-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:var(--title-sz);
+  letter-spacing:.07em;line-height:.95;
+  background:linear-gradient(130deg,var(--cream) 0%,var(--gold2) 42%,var(--gold) 78%,var(--amber) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sub-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(11px,3vw,13.5px);color:var(--muted);letter-spacing:.04em;margin-top:2px}
+
+/* now playing */
+.now-box{
+  display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;
+  background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.13);border-radius:4px;
+  overflow:hidden;position:relative;
+  animation:up .5s .16s both;
+}
+.now-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--ember),var(--gold));border-radius:2px 0 0 2px}
+.np-lbl{font-size:clamp(7px,1.8vw,8px);letter-spacing:.28em;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.np-scroll{flex:1;overflow:hidden;position:relative}
+
+.np-inner{
+  font-size:clamp(10px,2.5vw,11.5px);letter-spacing:.05em;color:var(--cream);
+  white-space:nowrap;display:inline-block;
+}
+.np-inner.moving{animation:scroll var(--dur,14s) linear infinite}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(var(--dist,-200px))}}
+
+/* eq */
+.eq{display:flex;align-items:flex-end;gap:2px;height:clamp(30px,5vw,44px);margin-bottom:clamp(14px,3vw,22px);animation:up .5s .18s both}
+.eq-b{flex:1;border-radius:2px 2px 0 0;transform-origin:bottom;background:linear-gradient(to top,var(--ember),var(--amber),var(--gold));animation:eqA var(--d,.9s) ease-in-out infinite alternate}
+@keyframes eqA{from{transform:scaleY(.04)}to{transform:scaleY(1)}}
+.eq-b.off{animation-play-state:paused;transform:scaleY(.04)!important}
+
+/* progress */
+.prog-zone{margin-bottom:clamp(14px,3vw,22px);animation:up .5s .2s both}
+.prog-meta{display:flex;justify-content:space-between;font-size:clamp(7.5px,2vw,9px);letter-spacing:.1em;color:var(--muted);margin-bottom:7px}
+.prog-track{height:2px;background:rgba(201,168,76,.08);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--ember),var(--gold2));border-radius:2px;width:0%;box-shadow:0 0 10px var(--gold);animation:pg 3s ease-in-out infinite}
+@keyframes pg{0%,100%{box-shadow:0 0 8px var(--gold)}50%{box-shadow:0 0 18px var(--gold),0 0 34px rgba(201,168,76,.22)}}
+
+/* controls */
+.ctrl-row{display:flex;align-items:center;justify-content:center;gap:clamp(12px,4vw,22px);margin-bottom:clamp(14px,3vw,22px);animation:up .5s .22s both}
+
+.side-btn{background:none;border:none;cursor:none;color:var(--muted);padding:8px;border-radius:50%;transition:color .2s,background .2s;display:flex;touch-action:manipulation}
+.side-btn:hover{color:var(--gold);background:rgba(201,168,76,.07)}
+@media(pointer:coarse){.side-btn{cursor:pointer}}
+
+.play-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.p-rings{position:absolute;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.p-ring{position:absolute;width:clamp(58px,12vw,70px);height:clamp(58px,12vw,70px);border-radius:50%;border:1px solid rgba(201,168,76,.35);animation:pr2 2.2s ease-out infinite}
+.p-ring:nth-child(2){animation-delay:.73s}.p-ring:nth-child(3){animation-delay:1.46s}
+.p-rings.off .p-ring{animation-play-state:paused;opacity:0}
+@keyframes pr2{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.5);opacity:0}}
+
+.play-btn{
+  width:clamp(58px,12vw,70px);height:clamp(58px,12vw,70px);border-radius:50%;
+  background:conic-gradient(from 135deg,var(--amber),var(--gold2),var(--gold),var(--amber));
+  border:none;cursor:none;display:flex;align-items:center;justify-content:center;color:#06040c;
+  position:relative;overflow:hidden;
+  transition:transform .2s,filter .2s;
+  box-shadow:0 0 28px rgba(201,168,76,.38),0 8px 22px rgba(0,0,0,.4);
+  animation:ppulse 3s ease-in-out infinite;
+  touch-action:manipulation;
+}
+.play-btn::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(140deg,rgba(255,255,255,.28) 0%,transparent 55%)}
+@keyframes ppulse{0%,100%{box-shadow:0 0 28px rgba(201,168,76,.38),0 8px 22px rgba(0,0,0,.4)}50%{box-shadow:0 0 48px rgba(201,168,76,.6),0 8px 28px rgba(0,0,0,.5)}}
+.play-btn:hover{transform:scale(1.1)}
+.play-btn:active{transform:scale(.93)}
+@media(pointer:coarse){.play-btn{cursor:pointer}}
+
+/* volume */
+.vol-row{display:flex;align-items:center;gap:10px;margin-bottom:clamp(14px,3vw,20px);animation:up .5s .26s both}
+.vol-ic{color:var(--muted);flex-shrink:0}
+input[type=range].vol{
+  flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;outline:none;cursor:none;
+  background:linear-gradient(90deg,var(--gold) var(--pct,75%),rgba(201,168,76,.12) var(--pct,75%));
+  touch-action:manipulation;
+}
+input[type=range].vol::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);cursor:none;box-shadow:0 0 8px rgba(201,168,76,.7);transition:transform .15s}
+input[type=range].vol::-webkit-slider-thumb:hover{transform:scale(1.45)}
+@media(pointer:coarse){input[type=range].vol{cursor:pointer}input[type=range].vol::-webkit-slider-thumb{cursor:pointer;width:20px;height:20px}}
+.vol-lbl{font-size:clamp(8px,2vw,9px);letter-spacing:.1em;color:var(--muted);min-width:36px;text-align:right}
+
+/* link grid */
+.lnk-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;animation:up .5s .3s both}
+.lnk{
+  display:flex;align-items:center;gap:8px;padding:clamp(9px,2vw,12px) clamp(10px,3vw,14px);
+  border-radius:4px;background:rgba(201,168,76,.03);border:1px solid rgba(201,168,76,.09);
+  color:var(--muted);text-decoration:none;font-size:clamp(8px,2vw,9px);letter-spacing:.14em;text-transform:uppercase;
+  cursor:none;transition:all .22s;position:relative;overflow:hidden;font-family:'DM Mono',monospace;
+  touch-action:manipulation;
+}
+.lnk::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(201,168,76,.07),transparent);opacity:0;transition:opacity .22s}
+.lnk:hover{border-color:rgba(201,168,76,.28);color:var(--cream)}
+.lnk:hover::after{opacity:1}
+.lnk svg{opacity:.55;flex-shrink:0;transition:opacity .22s}
+.lnk:hover svg{opacity:1}
+@media(pointer:coarse){.lnk{cursor:pointer}}
+
+/* footer */
+.card-foot{display:flex;align-items:center;justify-content:space-between;padding:12px var(--body-pad);border-top:1px solid rgba(201,168,76,.06)}
+.foot-l{font-size:clamp(7px,1.8vw,8px);letter-spacing:.2em;color:rgba(94,86,110,.35);text-transform:uppercase}
+.foot-r{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(10px,2.5vw,12px);color:rgba(201,168,76,.25)}
+
+/* ══════════════════════════════════════════════════
+   LOADER
+══════════════════════════════════════════════════ */
+.loader{
+  position:fixed;inset:0;z-index:500;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity .8s ease,visibility .8s;
+}
+.loader.out{opacity:0;visibility:hidden;pointer-events:none}
+.ld-title{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,10vw,54px);letter-spacing:.1em;
+  background:linear-gradient(130deg,var(--cream),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:ldpulse 1.6s ease-in-out infinite;
+}
+@keyframes ldpulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.ld-bar{width:clamp(140px,40vw,180px);height:1px;background:rgba(201,168,76,.1);border-radius:1px;overflow:hidden}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--ember),var(--gold));width:0%;box-shadow:0 0 8px var(--gold)}
+.ld-msg{font-size:clamp(7.5px,2vw,9px);letter-spacing:.28em;color:var(--muted);text-transform:uppercase;text-align:center;height:14px}
+
+/* ══════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════ */
+.toast{
+  position:fixed;bottom:clamp(16px,4vw,28px);left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--gold);color:#06040c;
+  font-size:clamp(8px,2vw,9px);letter-spacing:.22em;text-transform:uppercase;
+  padding:10px 22px;border-radius:3px;z-index:9999;
+  transition:transform .42s cubic-bezier(.22,1,.36,1);pointer-events:none;
+}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+/* ══════════════════════════════════════════════════
+   TABLET LANDSCAPE — side-by-side layout
+══════════════════════════════════════════════════ */
+@media(min-width:768px) and (orientation:landscape) and (max-height:620px){
+  .card{display:flex;flex-direction:row;width:min(780px,98vw);max-height:96vh;overflow:hidden}
+  .art-zone{width:240px;flex-shrink:0;height:auto!important;min-height:0}
+  .art-vignette{background:linear-gradient(to right,transparent 60%,rgba(15,12,26,1) 100%)}
+  .card-body-wrap{flex:1;display:flex;flex-direction:column;overflow-y:auto}
+  .card-foot{margin-top:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="CUR"></div><div id="CRING"></div>
+
+<!-- Loader -->
+<div class="loader" id="LD">
+  <div class="ld-title">RADIO MOULIN</div>
+  <div class="ld-bar"><div class="ld-fill" id="LDF"></div></div>
+  <div class="ld-msg" id="LDMSG">Initialisation…</div>
+</div>
+
+<!-- Background -->
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<canvas id="cvs"></canvas>
+<div class="grain"></div>
+<div class="scan"></div>
+
+<!-- Audio hidden -->
+<audio id="AUD" preload="none" crossorigin="anonymous"></audio>
+
+<!-- CARD -->
+<div class="card">
+
+  <!-- Art zone -->
+  <div class="art-zone" id="ARTZONE">
+    <div class="art-blur" id="ARTBG"></div>
+    <div class="art-vignette"></div>
+    <div class="art-center">
+      <div class="vinyl-wrap">
+        <!-- pulse rings -->
+        <div class="pulse-rings off" id="PR1">
+          <div class="pr"></div><div class="pr"></div><div class="pr"></div>
+        </div>
+        <!-- orbit rings -->
+        <div class="orbit-r or2"></div>
+        <div class="orbit-r or1"></div>
+        <!-- vinyl -->
+        <div class="vinyl paused" id="VINYL">
+          <div class="vinyl-label">
+            <img id="COVER" src="https://www.radioking.com/api/track/cover/0b45d33f-a8ed-415d-a5ff-73ae6d887d5c" alt="cover"
+              onerror="this.src='https://placehold.co/80/0f0c1a/c9a84c?text=RM'"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body wrapper (for tablet landscape) -->
+  <div class="card-body-wrap">
+
+    <div class="body">
+
+      <!-- top row -->
+      <div class="top-row">
+        <div class="live-pill"><div class="live-dot"></div><span class="live-txt">En direct</span></div>
+        <span class="clk" id="CLK">--:--:--</span>
+      </div>
+
+      <!-- title -->
+      <div class="title-zone">
+        <div class="pre-lbl">Vous écoutez</div>
+        <div class="main-title">Radio Moulin</div>
+        <div class="sub-title">La chaleur des ondes authentiques</div>
+        <!-- now playing -->
+        <div class="now-box" id="NOWBOX">
+          <span class="np-lbl">♪</span>
+          <div class="np-scroll" id="NPSCROLL">
+            <span class="np-inner" id="NPINNER">Chargement…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EQ -->
+      <div class="eq" id="EQ"></div>
+
+      <!-- Progress -->
+      <div class="prog-zone">
+        <div class="prog-meta"><span id="ELAPSED">00:00:00</span><span>▶ LIVE</span></div>
+        <div class="prog-track"><div class="prog-fill" id="PFILL"></div></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="ctrl-row">
+        <div class="play-wrap">
+          <div class="p-rings off" id="PR2">
+            <div class="p-ring"></div><div class="p-ring"></div><div class="p-ring"></div>
+          </div>
+          <button class="play-btn" id="PLAYBTN" aria-label="Lecture / Pause">
+            <svg id="PICO" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Volume -->
+      <div class="vol-row">
+        <svg class="vol-ic" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        <input type="range" class="vol" id="VOL" min="0" max="100" value="75" style="--pct:75%" aria-label="Volume"/>
+        <span class="vol-lbl" id="VLBL">75%</span>
+      </div>
+
+      <!-- Discord Link -->
+      <div class="lnk-grid" style="grid-template-columns: 1fr;">
+        <a href="https://discord.gg/pccKXhn472" target="_blank" rel="noopener" class="lnk" style="justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+          Rejoindre le Discord
+        </a>
+      </div>
+    </div><!-- .body -->
+
+    <div class="card-foot">
+      <span class="foot-l">© Radio Moulin</span>
+      <span class="foot-r">On the air</span>
+    </div>
+
+  </div><!-- .card-body-wrap -->
+</div><!-- .card -->
+
+<div class="toast" id="TOAST">Lien copié !</div>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════
+   CANVAS STARS
+════════════════════════════════════════ */
+(()=>{
+  const c=document.getElementById('cvs'),x=c.getContext('2d');let P=[];
+  const resize=()=>{c.width=innerWidth;c.height=innerHeight;P=[];
+    for(let i=0;i<120;i++)P.push({x:Math.random()*c.width,y:Math.random()*c.height,r:.15+Math.random()*.8,o:Math.random(),s:.004+Math.random()*.016,d:Math.random()>.5?1:-1,vx:(Math.random()-.5)*.05,vy:(Math.random()-.5)*.05})};
+  const draw=()=>{x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.o+=p.s*p.d;if(p.o>1||p.o<0)p.d*=-1;p.x=(p.x+p.vx+c.width)%c.width;p.y=(p.y+p.vy+c.height)%c.height;x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(201,168,76,${p.o*.5})`;x.fill()});requestAnimationFrame(draw)};
+  addEventListener('resize',resize);resize();draw();
+})();
+
+/* ════════════════════════════════════════
+   CURSOR (desktop)
+════════════════════════════════════════ */
+if(window.matchMedia('(pointer:fine)').matches){
+  const C=document.getElementById('CUR'),R=document.getElementById('CRING');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;C.style.left=mx+'px';C.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.13;ry+=(my-ry)*.13;R.style.left=rx+'px';R.style.top=ry+'px';requestAnimationFrame(loop)})();
+  document.querySelectorAll('a,button,.lnk').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{C.style.width='5px';C.style.height='5px';R.style.width='46px';R.style.height='46px';R.style.borderColor='rgba(201,168,76,.85)'});
+    el.addEventListener('mouseleave',()=>{C.style.width='8px';C.style.height='8px';R.style.width='30px';R.style.height='30px';R.style.borderColor='rgba(201,168,76,.5)'});
+  });
+}
+
+/* ════════════════════════════════════════
+   EQ BARS
+════════════════════════════════════════ */
+const EQ=document.getElementById('EQ');
+const barCount=window.innerWidth<400?20:28;
+for(let i=0;i<barCount;i++){
+  const b=document.createElement('div');b.className='eq-b off';
+  b.style.setProperty('--d',(0.4+Math.random()*.9).toFixed(2)+'s');
+  b.style.height=Math.floor(16+Math.random()*84)+'%';
+  b.style.animationDelay=(Math.random()*.6)+'s';
+  EQ.appendChild(b);
+}
+
+/* ════════════════════════════════════════
+   CLOCK + ELAPSED
+════════════════════════════════════════ */
+let playing=false,elapsed=0;
+const CLK=document.getElementById('CLK'),ELS=document.getElementById('ELAPSED');
+function pad(n){return String(n).padStart(2,'0')}
+setInterval(()=>{
+  const n=new Date();CLK.textContent=pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
+  if(playing){elapsed++;ELS.textContent=pad(Math.floor(elapsed/3600))+':'+pad(Math.floor((elapsed%3600)/60))+':'+pad(elapsed%60)}
+},1000);
+
+/* Cosmetic progress sweep */
+let prog=0;setInterval(()=>{prog=(prog+.025)%100;document.getElementById('PFILL').style.width=prog+'%'},200);
+
+/* ════════════════════════════════════════
+   AUDIO ENGINE
+════════════════════════════════════════ */
+const STREAM='https://listen.radioking.com/radio/828956/stream/898181';
+const AUD=document.getElementById('AUD');
+const VINYL=document.getElementById('VINYL');
+const PR1=document.getElementById('PR1'),PR2=document.getElementById('PR2');
+const PICO=document.getElementById('PICO');
+const allBars=[...document.querySelectorAll('.eq-b')];
+
+function setPlay(v){
+  playing=v;
+  if(v){
+    PICO.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    VINYL.classList.remove('paused');
+    PR1.classList.remove('off');PR2.classList.remove('off');
+    allBars.forEach(b=>b.classList.remove('off'));
+  }else{
+    PICO.innerHTML='<path d="M8 5v14l11-7z"/>';
+    VINYL.classList.add('paused');
+    PR1.classList.add('off');PR2.classList.add('off');
+    allBars.forEach(b=>b.classList.add('off'));
+  }
+}
+
+document.getElementById('PLAYBTN').addEventListener('click',()=>{
+  if(playing){AUD.pause();setPlay(false)}
+  else{
+    if(!AUD.src)AUD.src=STREAM;
+    AUD.play().then(()=>setPlay(true)).catch(()=>{
+      // on iOS, try again after user gesture acknowledged
+      AUD.load();AUD.play().then(()=>setPlay(true)).catch(()=>window.open('https://play.radioking.io/radio-moulin1','_blank'));
+    });
+  }
+});
+AUD.addEventListener('playing',()=>setPlay(true));
+AUD.addEventListener('pause',()=>setPlay(false));
+AUD.addEventListener('ended',()=>setPlay(false));
+AUD.addEventListener('error',()=>setPlay(false));
+
+/* ════════════════════════════════════════
+   VOLUME
+════════════════════════════════════════ */
+const VOL=document.getElementById('VOL'),VLBL=document.getElementById('VLBL');
+VOL.addEventListener('input',function(){
+  const v=+this.value;AUD.volume=v/100;
+  this.style.setProperty('--pct',v+'%');
+  VLBL.textContent=v+'%';
+});
+AUD.volume=.75;
+
+/* ════════════════════════════════════════
+   COPY
+════════════════════════════════════════ */
+function doCopy(){
+  navigator.clipboard.writeText('https://play.radioking.io/radio-moulin1')
+    .then(()=>showToast('Lien copié !'))
+    .catch(()=>showToast('Erreur'));
+}
+function showToast(msg){
+  const T=document.getElementById('TOAST');T.textContent=msg;T.classList.add('on');
+  setTimeout(()=>T.classList.remove('on'),2400);
+}
+
+/* ════════════════════════════════════════
+   NOW PLAYING — API RadioKing
+════════════════════════════════════════ */
+const NPINNER=document.getElementById('NPINNER');
+const NPSCROLL=document.getElementById('NPSCROLL');
+const ARTBG=document.getElementById('ARTBG');
+const COVER=document.getElementById('COVER');
+let lastTitle='';
+
+function updateNowPlaying(d){
+  const artist=d.artist||'';
+  const title=d.title||'';
+  const full=title+(artist?' — '+artist:'');
+  if(!full||full===lastTitle)return;
+  lastTitle=full;
+
+  // Update cover art
+  if(d.cover){
+    COVER.src=d.cover;
+    ARTBG.style.backgroundImage=`url('${d.cover}')`;
+  }
+
+  // Marquee logic
+  NPINNER.classList.remove('moving');
+  NPINNER.style.removeProperty('--dur');
+  NPINNER.style.removeProperty('--dist');
+  NPINNER.textContent=full;
+
+  requestAnimationFrame(()=>{
+    const iW=NPINNER.scrollWidth;
+    const cW=NPSCROLL.clientWidth;
+    if(iW>cW){
+      const gap='     •     ';
+      NPINNER.textContent=full+gap+full;
+      const dur=Math.max(8,iW*.045);
+      NPINNER.style.setProperty('--dur',dur+'s');
+      NPINNER.style.setProperty('--dist',`-${iW+gap.length*6}px`);
+      NPINNER.classList.add('moving');
+    }
+  });
+}
+
+function fetchTrack(){
+  fetch('https://www.radioking.com/api/radio/828956/track/current')
+    .then(r=>r.json())
+    .then(updateNowPlaying)
+    .catch(()=>{if(lastTitle==='')NPINNER.textContent='Radio Moulin — En direct'});
+}
+fetchTrack();
+setInterval(fetchTrack,15000);
+
+/* ════════════════════════════════════════
+   LOADER + AUTOPLAY
+════════════════════════════════════════ */
+const LD=document.getElementById('LD'),LDF=document.getElementById('LDF'),LDMSG=document.getElementById('LDMSG');
+const steps=['Initialisation…','Connexion au serveur…','Syntonisation des ondes…','Accord de la fréquence…','Prêt à diffuser…'];
+let pct=0;
+const iv=setInterval(()=>{
+  pct+=Math.random()*11+3;if(pct>100)pct=100;
+  LDF.style.width=pct+'%';
+  LDMSG.textContent=steps[Math.min(Math.floor(pct/21),4)];
+  if(pct>=100){
+    clearInterval(iv);
+    setTimeout(()=>{
+      LD.classList.add('out');
+      /* ► AUTOPLAY immédiat */
+      AUD.src=STREAM;
+      AUD.play().then(()=>setPlay(true)).catch(()=>setPlay(false));
+    },450);
+  }
+},72);
+</script>
+</body>
+</html>
